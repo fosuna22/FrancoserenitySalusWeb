@@ -1,11 +1,11 @@
-name: Franco prueba
+name: Franco prueba123
 
 on:
   workflow_dispatch:
     inputs:
       testTag:
         description: 'Etiqueta de prueba para ejecutar (por ejemplo: @smoke)'
-        required: false
+        required: true
         default: '@smoke'
 
   push:
@@ -55,7 +55,7 @@ jobs:
         run: echo "La etiqueta usada es $env:TAG"
 
       - name: Ejecutar build de Maven y pruebas Serenity
-        run: mvn clean verify -Dtags="$env:TAG"
+        run: mvn clean verify -Dtags=$env:TAG
 
       - name: Subir informes de Serenity
         uses: actions/upload-artifact@v4
