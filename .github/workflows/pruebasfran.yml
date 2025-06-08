@@ -1,0 +1,63 @@
+name: Franco prueba
+
+on:
+  workflow_dispatch:
+    inputs:
+      testTag:
+        description: 'Etiqueta de prueba para ejecutar (por ejemplo: @smoke)'
+        required: true
+        default: '@smoke'
+
+  push:
+    branches:
+      - US-20-Registro-de-nuevo-usuario
+
+  pull_request:
+    branches:
+      - US-20-Registro-de-nuevo-usuario
+
+  schedule:
+    - cron: '0 */6 * * *'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Cache de dependencias de Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Establecer etiqueta de prueba (TAG)
+        run: |
+          if ($env:TAG -eq $null -or $env:TAG -eq "") {
+            echo "TAG=@smoke" >> $env:GITHUB_ENV
+          } else {
+            echo "TAG=$env:TAG" >> $env:GITHUB_ENV
+          }
+        env:
+          TAG: ${{ github.event.inputs.testTag }}
+
+      - name: Verificar valor de TAG
+        run: echo "La etiqueta usada es $env:TAG"
+
+      - name: Ejecutar build de Maven y pruebas Serenity
+        run: mvn clean verify -Dtags="$env:TAG"
+
+      - name: Subir informes de Serenity
+        uses: actions/upload-artifact@v4
+        with:
+          name: serenity-reports
+          path: target/site/serenity
