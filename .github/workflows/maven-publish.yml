@@ -1,4 +1,4 @@
-name: Franco prueba123
+name: Franco prueba
 
 on:
   workflow_dispatch:
@@ -42,20 +42,21 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Establecer etiqueta de prueba (TAG)
+        shell: pwsh
         run: |
-          if ($env:TAG -eq $null -or $env:TAG -eq "") {
-            echo "TAG=@smoke" >> $env:GITHUB_ENV
-          } else {
-            echo "TAG=$env:TAG" >> $env:GITHUB_ENV
+          $tag = "${{ github.event.inputs.testTag }}"
+          if ([string]::IsNullOrWhiteSpace($tag)) {
+            $tag = "@smoke"
           }
-        env:
-          TAG: ${{ github.event.inputs.testTag }}
+          Add-Content -Path $env:GITHUB_ENV -Value "TAG=$tag"
 
       - name: Verificar valor de TAG
+        shell: pwsh
         run: echo "La etiqueta usada es $env:TAG"
 
       - name: Ejecutar build de Maven y pruebas Serenity
-        run: mvn clean verify -Dtags=$env:TAG
+        shell: pwsh
+        run: mvn clean verify -Dtags="$env:TAG"
 
       - name: Subir informes de Serenity
         uses: actions/upload-artifact@v4
