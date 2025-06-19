@@ -16,8 +16,7 @@ on:
     branches:
       - US-20-Registro-de-nuevo-usuario
 
-  schedule:
-    - cron: '0 */6 * * *'
+ 
 
 jobs:
   build:
